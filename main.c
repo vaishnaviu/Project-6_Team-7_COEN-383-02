@@ -7,6 +7,7 @@
 #include<string.h>
 #include<time.h>
 #include<signal.h>
+#include<sys/select.h>
 
 #define total_childProcesses 5
 #define duration_childProrcess 30
