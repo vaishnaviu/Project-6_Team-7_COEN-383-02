@@ -12,3 +12,4 @@
 #define duration_childProrcess 30
 #define READ 0
 #define WRITE 1
+
