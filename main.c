@@ -22,7 +22,7 @@ void forkChild(int childNo, int pipe);
 int main(int argc, char **argv) {
 
 	gettimeofday(&start,NULL);
-	startTime = (double)start.tv_sec + (double)start.tv_usec/1000000;
+	startTime = (double)start.tv_sec + (double)start.tv_usec/1000000.0;
 
 	int childNo = 1;
 	int pipeFD[total_childProcesses][2];	//Pipe has 2 file descripter, 0 - read & 1 - write
@@ -81,7 +81,7 @@ int main(int argc, char **argv) {
 		while(1) {
 			
 			gettimeofday(&cur,NULL);
-			double curTime = (double)cur.tv_sec + (double)cur.tv_usec/1000000;
+			double curTime = (double)cur.tv_sec + (double)cur.tv_usec/1000000.0;
 			
 			tv.tv_sec = 0;
 			tv.tv_usec = 1; //Wait for 1000 millisecond
@@ -110,7 +110,9 @@ int main(int argc, char **argv) {
 					if(FD_ISSET(pipeFD[i][READ],&rdfs)) {
 						int c = read(pipeFD[i][READ], msg, sizeof(char)*255);
 						if(c) {
-							fprintf(fp,"%s", msg);
+							gettimeofday(&cur,NULL);
+							curTime = (double)cur.tv_sec + (double)cur.tv_usec/1000000.0;
+							fprintf(fp,"0:%.3f, %s", (curTime - startTime), msg);
 							fflush(fp);
 						} else{
 							printf("Child %d has closed the pipe\n",i+1);
@@ -141,7 +143,7 @@ void forkChild(int child_no, int pipe_fd) {
     time_t seed;
     srand((unsigned)time(&seed));
 
-    double currentTime = (double)current_time.tv_sec + (double)current_time.tv_usec / 1000000;
+    double currentTime = (double)current_time.tv_sec + (double)current_time.tv_usec / 1000000.0;
     int messageNo = 1;
 
     if (child_no == total_childProcesses) {
@@ -168,7 +170,7 @@ void forkChild(int child_no, int pipe_fd) {
                 printf("Child 5 >> ");
             }
             gettimeofday(&current_time, NULL);
-            currentTime = (double)current_time.tv_sec + (double)current_time.tv_usec / 1000000;
+            currentTime = (double)current_time.tv_sec + (double)current_time.tv_usec / 1000000.0;
         }
         printf("\n");
     } else {
@@ -183,7 +185,7 @@ void forkChild(int child_no, int pipe_fd) {
 
             sleep(random_wait_time);
             gettimeofday(&current_time, NULL);
-            currentTime = (double)current_time.tv_sec + (double)current_time.tv_usec / 1000000;
+            currentTime = (double)current_time.tv_sec + (double)current_time.tv_usec / 1000000.0;
         }
     }
     close(pipe_fd);
