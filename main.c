@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 			int totalPipeActive = 0;
 			for(int i=0;i<total_childProcesses;i++) {
 				if(isPipeActive[i]){
-					FD_SET(pipefd[i][READ],&rdfs);
+					FD_SET(pipeFD[i][READ],&rdfs);
 					totalPipeActive++;
 				}
 			}
@@ -107,14 +107,14 @@ int main(int argc, char **argv) {
 				char msg[255];
 				
 				for(int i = 0;i < total_childProcesses;i++) {
-					if(FD_ISSET(pipefd[i][READ],&rdfs)) {
-						int c = read(pipefd[i][READ], msg, sizeof(char)*255);
+					if(FD_ISSET(pipeFD[i][READ],&rdfs)) {
+						int c = read(pipeFD[i][READ], msg, sizeof(char)*255);
 						if(c) {
 							fprintf(fp,"%s", msg);
 							fflush(fp);
 						} else{
 							printf("Child %d has closed the pipe\n",i+1);
-							close(pipefd[i][READ]);
+							close(pipeFD[i][READ]);
 							isPipeActive[i] = 0;
 						}
 					}
@@ -174,7 +174,7 @@ void forkChild(int child_no, int pipe_fd) {
     } else {
         while ((currentTime - startTime) < duration_childProrcess) {
             /* Initializes random number generator */
-            random_wait_time = (rand() % 4);
+            random_wait_time = (rand() % 3);
 
             char message[255];
             sprintf(message, "0:%.3f: Child %d message %d\n", (currentTime - startTime), child_no, messageNo);
