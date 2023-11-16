@@ -15,7 +15,6 @@
 #define WRITE 1
 
 struct timeval start;
-
 double startTime;
 
 void forkChild(int childNo, int pipe);
@@ -131,9 +130,6 @@ int main(int argc, char **argv) {
 	// Time stamped message to nearest 1000th of second gettimeofday(&tv, NULL), sends it to the parent process
 	return 0;
 }
-
-
-
 
 void forkChild(int child_no, int pipe_fd) {
     int random_wait_time = 0; // 0, 1, or 2 seconds
