@@ -14,7 +14,62 @@
 #define READ 0
 #define WRITE 1
 
+struct timeval start;
 
+double startTime;
+
+void forkChild(int childNo, int pipe);
+
+int main(int argc, char **argv) {
+
+	gettimeofday(&start,NULL);
+	startTime = (double)start.tv_sec + (double)start.tv_usec/1000000;
+
+	int childNo = 1;
+	int pipeFD[total_childProcesses][2];	//Pipe has 2 file descripter, 0 - read & 1 - write
+	
+	fd_set rdfs;
+	FD_ZERO(&rdfs);
+	int maxFD = 0;
+	int isChild = 0;
+	int childID = -1;
+
+	//Create pipes
+	for(int i=0;i < total_childProcesses;i++) {
+		pipe(pipeFD[i]);
+	}
+	maxFD = pipeFD[total_childProcesses-1][READ] + 1;
+	
+	// Parent process creates 5 child
+	while(childNo <= total_childProcesses) {
+		//printf("Main Process :: childNo %d\n",childNo);
+
+		//Forking child
+		int pid = fork();
+		if(pid == 0) {
+			isChild = 1;
+			break;
+		}
+		if(childNo == total_childProcesses) {
+			childID = pid;
+		}
+
+		childNo++;
+	}
+	if(isChild) {
+		//Closed unused pipe FileDescriptor
+		for(int i=0;i<total_childProcesses;i++) {
+			if(i != childNo - 1) {
+				close(pipeFD[i][WRITE]);
+			}
+			close(pipeFD[i][READ]);
+		}
+		forkChild(childNo,pipeFD[childNo-1][WRITE]);	//Passing write fd of pipe
+		return 0;
+	}else{
+
+    }
+}
 
 
 
@@ -60,7 +115,7 @@ void forkChild(int child_no, int pipe_fd) {
         }
         printf("\n");
     } else {
-        while ((currentTime - startTime) < DURATION_CHILD_PROCESS) {
+        while ((currentTime - startTime) < duration_childProrcess) {
             /* Initializes random number generator */
             random_wait_time = (rand() % 4);
 
