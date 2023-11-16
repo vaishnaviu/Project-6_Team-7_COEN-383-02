@@ -66,9 +66,70 @@ int main(int argc, char **argv) {
 		}
 		forkChild(childNo,pipeFD[childNo-1][WRITE]);	//Passing write fd of pipe
 		return 0;
-	}else{
+	}
+    else{
+        for(int i=0;i<total_childProcesses;i++) {
+			close(pipeFD[i][WRITE]);
+        }
 
-    }
+        struct timeval tv;
+        int isPipeActive[total_childProcesses];
+		for(int i=0;i<total_childProcesses;i++) {
+			isPipeActive[i] = 1;
+		}
+		struct timeval cur;
+		FILE *fp = fopen("output.txt","w");
+		while(1) {
+			
+			gettimeofday(&cur,NULL);
+			double curTime = (double)cur.tv_sec + (double)cur.tv_usec/1000000;
+			
+			tv.tv_sec = 0;
+			tv.tv_usec = 1; //Wait for 1000 millisecond
+
+			//Reinitializing read file descriptor set
+			FD_ZERO(&rdfs);
+			int totalPipeActive = 0;
+			for(int i=0;i<total_childProcesses;i++) {
+				if(isPipeActive[i]){
+					FD_SET(pipefd[i][READ],&rdfs);
+					totalPipeActive++;
+				}
+			}
+
+			if(totalPipeActive == 0) {
+				break;
+			}
+			int status = select(maxFD, &rdfs, NULL, NULL, &tv);
+			if(status == -1) {
+				printf("Select Failure\n");
+				break;
+			} else if(status) {
+				char msg[255];
+				
+				for(int i = 0;i < total_childProcesses;i++) {
+					if(FD_ISSET(pipefd[i][READ],&rdfs)) {
+						int c = read(pipefd[i][READ], msg, sizeof(char)*255);
+						if(c) {
+							fprintf(fp,"%s", msg);
+							fflush(fp);
+						} else{
+							printf("Child %d has closed the pipe\n",i+1);
+							close(pipefd[i][READ]);
+							isPipeActive[i] = 0;
+						}
+					}
+				}
+			}
+		}
+		fclose(fp);
+		printf("Terminating main process\n");
+	}
+
+	// Lifetime of each child 30 seconds
+	// Each 4 childs sleep at random time of 0,1 or 2 seconds
+	// Time stamped message to nearest 1000th of second gettimeofday(&tv, NULL), sends it to the parent process
+	return 0;
 }
 
 
